@@ -6,15 +6,17 @@
 #   -k  kernel id under cache/kernels (default 2.6.17)
 #   -f  file/dir copied into the guest at /opt/<basename> (or /opt/DEST); repeatable
 #   -C  QEMU -cpu model (default qemu64; `max` exposes AVX2 etc. even under TCG, `host` needs KVM)
+#   -T  run the whole command under sharun's compat tracer (default on for kernels
+#       older than 2.6.16: without it not even the AppImage runtime can start there)
 #   -s  interactive shell on the serial console instead of running CMD
 #   -t  timeout in seconds (default 120)
 # CMD runs inside the guest via `sh -c` (cwd /opt); the script exits with its status.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
-kernel=2.6.17 mem=512 tmo=120 shell=0 cpu=qemu64 files=()
-while getopts k:m:t:f:C:s o; do
+kernel=2.6.17 mem=512 tmo=120 shell=0 cpu=qemu64 trace=auto files=()
+while getopts k:m:t:f:C:sT o; do
 	case $o in
-	k) kernel=$OPTARG ;; C) cpu=$OPTARG ;; m) mem=$OPTARG ;; t) tmo=$OPTARG ;; s) shell=1 ;; f) files+=("$OPTARG") ;;
+	k) kernel=$OPTARG ;; C) cpu=$OPTARG ;; m) mem=$OPTARG ;; t) tmo=$OPTARG ;; s) shell=1 ;; T) trace=1 ;; f) files+=("$OPTARG") ;;
 	*) sed -n '2,12p' "$0"; exit 2 ;;
 	esac
 done
@@ -36,6 +38,18 @@ for f in "${files[@]}"; do
 done
 printf '%s\n' "$cmd" >"$root/cmd"
 
+# Kernels without the *at syscalls (< 2.6.16): everything, the AppImage runtime
+# included, has to run inside the tracer that translates them.
+if [ "$trace" = auto ]; then
+	trace=0; [ "$kernel" != 2.6.16 ] && [ "$(printf '%s\n' "$kernel" 2.6.16 | sort -V | head -1)" = "$kernel" ] && trace=1
+fi
+if [ "$trace" = 1 ]; then
+	sharun=${SHARUN:-$here/../../target/x86_64-unknown-linux-musl/release/sharun}
+	[ -x "$sharun" ] || "$here/build-sharun.sh" >/dev/null
+	mkdir -p "$root/opt/.trace"; cp "$sharun" "$root/opt/.trace/sharun"; ln "$root/opt/.trace/sharun" "$root/opt/.trace/AppRun"
+	printf '#!/bin/sh\nexec "$@"\n' >"$root/opt/.trace/AppRun.sh"
+fi
+
 cat >"$root/init" <<'INIT'
 #!/bin/busybox sh
 /bin/busybox mount -t proc proc /proc
@@ -53,7 +67,8 @@ if grep -q 'oldkernel.shell=1' /proc/cmdline; then
 	setsid sh -c 'exec sh </dev/console >/dev/console 2>&1'
 	rc=0
 else
-	sh -c "$(cat /cmd)"; rc=$?
+	if [ -x /opt/.trace/AppRun ]; then /opt/.trace/AppRun sh -c "$(cat /cmd)"; rc=$?
+	else sh -c "$(cat /cmd)"; rc=$?; fi
 fi
 echo "== guest exit: $rc"
 echo o >/proc/sysrq-trigger 2>/dev/null; reboot -f
