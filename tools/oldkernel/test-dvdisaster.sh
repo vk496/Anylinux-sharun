@@ -9,7 +9,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 kernel=2.6.17 cpu=qemu64 threads=1
 while getopts k:C:x: o; do case $o in k) kernel=$OPTARG ;; C) cpu=$OPTARG ;; x) threads=$OPTARG ;; *) exit 2 ;; esac; done
 shift $((OPTIND - 1))
-img=${1:-$(ls "$here"/cache/appimages/dvdisaster-*-x86_64.AppImage | head -1)}
+img=${1:-$(ls "${APPIMAGES:-$here/cache/appimages}"/dvdisaster-*-x86_64.AppImage | head -1)}
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 cat >"$tmp/guest.sh" <<G
 cd /tmp

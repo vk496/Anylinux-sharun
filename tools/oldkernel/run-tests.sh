@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Run every old-kernel test against the sharun built from this checkout.
 #   run-tests.sh [-k "2.6.17 2.6.16"] [-q]
+# APPIMAGES=dir uses the AppImages in dir; OLDKERNEL_TRACE=0 stops run.sh from running
+# the guest command under sharun's tracer on kernels < 2.6.16 (the runtime has to do it)
 # Always: syscall regression tests and the coreutils/bash AppDir test.
 # When the AppImages were built (build-demo.sh gtk2-demo-appimage /
 # xvfb-demo-appimage, build-dvdisaster.sh) also: the GUI test and the
@@ -10,7 +12,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 kernels="2.6.17 2.6.16"; [ "${1:-}" = -k ] && { kernels=$2; shift 2; }
 sharun=$here/../../target/x86_64-unknown-linux-musl/release/sharun
 [ -x "$sharun" ] || "$here/build-sharun.sh" >/dev/null || exit 1
-a=$here/cache/appimages; fail=0
+a=${APPIMAGES:-$here/cache/appimages}; fail=0
 run() { # name cmd...
 	name=$1; shift
 	if "$@" >"$here/cache/last-test.log" 2>&1; then echo "PASS  $name"

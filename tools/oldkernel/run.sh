@@ -13,7 +13,7 @@
 # CMD runs inside the guest via `sh -c` (cwd /opt); the script exits with its status.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
-kernel=2.6.17 mem=512 tmo=120 shell=0 cpu=qemu64 trace=auto files=()
+kernel=2.6.17 mem=512 tmo=120 shell=0 cpu=qemu64 trace=${OLDKERNEL_TRACE:-auto} files=()
 while getopts k:m:t:f:C:sTN o; do
 	case $o in
 	k) kernel=$OPTARG ;; C) cpu=$OPTARG ;; m) mem=$OPTARG ;; t) tmo=$OPTARG ;; s) shell=1 ;; T) trace=1 ;; N) trace=0 ;; f) files+=("$OPTARG") ;;
