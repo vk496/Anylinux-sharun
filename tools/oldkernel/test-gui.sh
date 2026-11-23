@@ -4,7 +4,7 @@
 #   test-gui.sh [-k KERNEL] [-w SECS] [-o out.png] <xvfb.AppImage> <app.AppImage> [app args...]
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
-kernel=2.6.17 wait=25 out=$here/cache/screenshot.png
+kernel=2.6.17 wait=12 out=$here/cache/screenshot.png
 while getopts k:w:o: o; do case $o in k) kernel=$OPTARG ;; w) wait=$OPTARG ;; o) out=$(realpath -m "$OPTARG") ;; *) exit 2 ;; esac; done
 shift $((OPTIND - 1)); xvfb=$(realpath "$1"); app=$(realpath "$2"); shift 2
 args=""; for a in "$@"; do args+=" '${a//\'/\'\\\'\'}'"; done

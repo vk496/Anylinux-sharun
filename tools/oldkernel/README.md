@@ -40,7 +40,7 @@ own number instead of `ENOSYS`, so inject it to see real behaviour
 | `test-sharun.sh <sharun> [kernel]` | host glibc programs (coreutils, bash) bundled in an AppDir and run via `AppRun` |
 | `test-appimage.sh [-k K] [-d] <AppImage> [args]` | an AppImage run as a user would, no manual unpacking (the runtime extracts itself: there is no FUSE) |
 | `test-gui.sh <xvfb.AppImage> <app.AppImage>` | GUI app against an Xvfb AppImage; saves a screenshot |
-| `test-dvdisaster.sh` | dvdisaster (speed47/dvdisaster#219) RS03 create, test, damage, fix, checksum |
+| `test-dvdisaster.sh` | dvdisaster (speed47/dvdisaster#219) on a 1 MiB image: RS03 create, test, damage, fix, checksum |
 
 `build-demo.sh [name]` builds an Anylinux-AppImages demo (default `gtk2-demo-appimage`,
 also `demo-scripts/xvfb-demo-appimage.sh`) and `build-dvdisaster.sh` the dvdisaster
