@@ -8,3 +8,4 @@ lib/*.so
 
 lib/stubs/out/
 lib/stubs/*/symbols.tsv
+tools/oldkernel/cache/
