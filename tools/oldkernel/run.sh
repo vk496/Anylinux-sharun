@@ -64,7 +64,8 @@ trap 'rm -rf "$root" "$root/../initramfs.$$.gz"' EXIT
 
 accel=tcg; [ -w /dev/kvm ] && accel=kvm
 append="console=ttyS0 panic=-1 quiet oldkernel.shell=$shell"
-qargs=(-machine "pc,accel=$accel" -cpu "$cpu" -m "$mem" -nographic -no-reboot
+# pc-i440fx-6.2, not "pc": newer machine types add an e820 range that 2.6.15 cannot handle
+qargs=(-machine "pc-i440fx-6.2,accel=$accel" -cpu "$cpu" -m "$mem" -nographic -no-reboot
 	-kernel "$vmlinuz" -initrd "$root/../initramfs.$$.gz" -append "$append"
 	-serial mon:stdio -net none)
 log=$(mktemp)

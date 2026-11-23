@@ -41,6 +41,13 @@ fetch_kernel() {
 		dl "https://snapshot.debian.org/file/97ac24835a46c79521accc7ba6af7c5d5068cfc7" "$cache/$deb"
 		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
 		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
+	2.6.15) # Ubuntu 6.06 "Dapper" amd64: the first release, before the *at syscalls (2.6.16)
+		deb=linux-image-2.6.15-23-amd64-generic_2.6.15-23.39_amd64.deb
+		out=$cache/kernels/2.6.15; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux-source-2.6.15/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }
