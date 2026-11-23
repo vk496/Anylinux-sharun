@@ -11,9 +11,10 @@ no network).
 | `2.6.17` | Ubuntu 6.10 `2.6.17-10.33` amd64 | old-releases.ubuntu.com |
 | `2.6.16` | Debian `2.6.16-18` amd64 | snapshot.debian.org |
 
-Needs `qemu-system-x86_64`, `cpio`, `musl-gcc`, `docker`, `gh` and `curl`; zig 0.16.0
-unpacked in `cache/zig` (see `ZIG_VERSION` in the CI workflow) to build like CI does.
-Everything downloaded lives in the git-ignored `cache/`.
+Needs `qemu-system-x86_64`, `cpio`, `musl-gcc`, `docker`, `gh` and `curl`. `fetch.sh`
+downloads the rest (kernels, busybox, zig 0.16.0 to build like CI does, and a guest
+overlay with `strace` and a font) into the git-ignored `cache/`; `run.sh` calls it when
+something is missing.
 
 ## Use
 

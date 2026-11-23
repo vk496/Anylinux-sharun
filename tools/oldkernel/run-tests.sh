@@ -3,7 +3,7 @@
 #   run-tests.sh [-k "2.6.17 2.6.16"] [-q]
 # Always: syscall regression tests and the coreutils/bash AppDir test.
 # When the AppImages were built (build-demo.sh gtk2-demo-appimage /
-# xvfb-demo-appimage, build-dvdisaster.sh) also: the GUI test and the
+# xvfb-demo-appimage / gtk3-demo-appimage, build-dvdisaster.sh) also: the GUI test and the
 # dvdisaster Reed-Solomon round trip. Exit status is non-zero if anything fails.
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
@@ -21,6 +21,8 @@ for k in $kernels; do
 	run "$k coreutils" "$here/test-sharun.sh" "$sharun" "$k"
 	ls "$a"/gtk2-ng-demo-*.AppImage "$a"/xvfb-demo-*.AppImage >/dev/null 2>&1 &&
 		run "$k gtk2 GUI" "$here/test-gui.sh" -k "$k" "$a"/xvfb-demo-x86_64.AppImage "$a"/gtk2-ng-demo-x86_64.AppImage
+	ls "$a"/gtk3-demo-*.AppImage "$a"/xvfb-demo-*.AppImage >/dev/null 2>&1 &&
+		run "$k gtk3 GUI" "$here/test-gui.sh" -k "$k" -w 40 -o "$here/cache/gtk3.png" "$a"/xvfb-demo-x86_64.AppImage "$a"/gtk3-demo-x86_64.AppImage
 	ls "$a"/dvdisaster-*.AppImage >/dev/null 2>&1 &&
 		run "$k dvdisaster" "$here/test-dvdisaster.sh" -k "$k"
 done

@@ -7,7 +7,8 @@ cache=$here/cache
 mkdir -p "$cache"
 
 UBU=http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux-source-2.6.17
-ALPINE=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main/x86_64
+ALPINE_BASE=https://dl-cdn.alpinelinux.org/alpine/latest-stable
+ALPINE=$ALPINE_BASE/main/x86_64
 
 dl() { [ -s "$2" ] || { echo "fetch $1"; curl -fL --retry 3 -o "$2.part" "$1" && mv "$2.part" "$2"; }; }
 
@@ -44,6 +45,33 @@ fetch_kernel() {
 	esac
 }
 
+# zig is only needed to build sharun/libs like CI does (build-*.sh).
+fetch_zig() {
+	[ -x "$cache/zig/zig" ] && return
+	mkdir -p "$cache/zig"
+	dl https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz "$cache/zig/zig.tar.xz"
+	echo "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00  $cache/zig/zig.tar.xz" | sha256sum -c -
+	tar xJf "$cache/zig/zig.tar.xz" -C "$cache/zig" --strip-components=1
+}
+
+# Extra guest files copied over the initramfs by run.sh: strace (and its musl
+# libs) for debugging, and a font so GUI screenshots show text.
+fetch_overlay() {
+	[ -d "$cache/overlay/usr/share/fonts" ] && [ -x "$cache/overlay/usr/bin/strace" ] && return
+	mkdir -p "$cache/overlay" "$cache/dl"
+	for repo in main community; do
+		idx=$(curl -fsSL "$ALPINE_BASE/$repo/x86_64/")
+		for p in strace musl libdw libelf libbz2 zlib zstd-libs xz-libs libgcc libeconf musl-fts musl-obstack argp-standalone libcap font-dejavu; do
+			n=$(echo "$idx" | grep -o "href=\"$p-[0-9][^\"]*\\.apk\"" | head -1 | cut -d'"' -f2) || true
+			[ -n "$n" ] || continue
+			dl "$ALPINE_BASE/$repo/x86_64/$n" "$cache/dl/$n" && tar -xzf "$cache/dl/$n" -C "$cache/overlay" 2>/dev/null
+		done
+	done
+	rm -f "$cache"/overlay/.PKGINFO "$cache"/overlay/.SIGN*
+}
+
 fetch_busybox
+fetch_zig
+fetch_overlay
 for k in "${@:-2.6.17}"; do fetch_kernel "$k"; done
 echo "ok: $cache"

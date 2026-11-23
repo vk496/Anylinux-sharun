@@ -9,6 +9,10 @@ assert bpp == 32, f"unsupported bpp {bpp}"
 px = d[hdr + h[19] * 12:]
 sh = lambda m: (m & -m).bit_length() - 1
 rs, gs, bs = sh(rm), sh(gm), sh(bm)
+colours = len({px[i:i + 4] for i in range(0, min(len(px), 4 * w * ht), 4 * 7)})
+sys.stderr.write(f"distinct colours: {colours}\n")
+if colours < 3:
+    sys.exit(3)  # a blank screen is not a rendered application
 raw = bytearray()
 fmt = "<I" if order == 0 else ">I"
 for y in range(ht):
