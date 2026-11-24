@@ -25,6 +25,15 @@ fetch_busybox() {
 	install -m755 "$d/bin/busybox.static" "$cache/busybox"; rm -rf "$d"
 }
 
+# An Ubuntu amd64 generic kernel: only the vmlinuz is needed.
+ubuntu_kernel() { # version deb pool-dir
+	out=$cache/kernels/$1; mkdir -p "$out"
+	[ -s "$out/vmlinuz" ] && return
+	dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/$3/$2" "$cache/$2"
+	t=$(mktemp -d); unpack_deb "$cache/$2" "$t"
+	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
+}
+
 fetch_kernel() {
 	case $1 in
 	2.6.17) # Ubuntu 6.10 "Edgy" amd64: the vanilla 2.6.17 base this project targets
@@ -80,6 +89,12 @@ fetch_kernel() {
 		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux/$deb" "$cache/$deb"
 		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
 		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
+	2.6.20) ubuntu_kernel 2.6.20 linux-image-2.6.20-17-generic_2.6.20-17.39_amd64.deb linux-source-2.6.20 ;; # 7.04 "Feisty"
+	2.6.22) ubuntu_kernel 2.6.22 linux-image-2.6.22-16-generic_2.6.22-16.62_amd64.deb linux-source-2.6.22 ;; # 7.10 "Gutsy"
+	2.6.27) ubuntu_kernel 2.6.27 linux-image-2.6.27-9-generic_2.6.27-9.19_amd64.deb linux ;; # 8.10 "Intrepid"
+	2.6.28) ubuntu_kernel 2.6.28 linux-image-2.6.28-19-generic_2.6.28-19.66_amd64.deb linux ;; # 9.04 "Jaunty"
+	2.6.35) ubuntu_kernel 2.6.35 linux-image-2.6.35-32-generic_2.6.35-32.68_amd64.deb linux ;; # 10.10 "Maverick"
+	2.6.38) ubuntu_kernel 2.6.38 linux-image-2.6.38-9-generic_2.6.38-9.43_amd64.deb linux ;; # 11.04 "Natty"
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }
