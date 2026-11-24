@@ -34,6 +34,24 @@ ubuntu_kernel() { # version deb pool-dir
 	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
 }
 
+# A Debian amd64 kernel from the release archive, same as above.
+debian_kernel() { # version deb
+	out=$cache/kernels/$1; mkdir -p "$out"
+	[ -s "$out/vmlinuz" ] && return
+	dl "http://archive.debian.org/debian/pool/main/l/linux-2.6/$2" "$cache/$2"
+	t=$(mktemp -d); unpack_deb "$cache/$2" "$t"
+	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
+}
+
+# A Fedora x86_64 kernel RPM (unpacked with 7z + cpio, no rpm tools needed).
+fedora_kernel() { # version rpm path-under-archive
+	out=$cache/kernels/$1; mkdir -p "$out"
+	[ -s "$out/vmlinuz" ] && return
+	dl "https://archives.fedoraproject.org/pub/archive/fedora/linux/$3/$2" "$cache/$2"
+	t=$(mktemp -d); (cd "$t" && 7z x -y "$cache/$2" >/dev/null && cpio -idm --quiet < ./*.cpio)
+	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
+}
+
 fetch_kernel() {
 	case $1 in
 	2.6.17) # Ubuntu 6.10 "Edgy" amd64: the vanilla 2.6.17 base this project targets
@@ -104,6 +122,21 @@ fetch_kernel() {
 	2.6.28) ubuntu_kernel 2.6.28 linux-image-2.6.28-19-generic_2.6.28-19.66_amd64.deb linux ;; # 9.04 "Jaunty"
 	2.6.35) ubuntu_kernel 2.6.35 linux-image-2.6.35-32-generic_2.6.35-32.68_amd64.deb linux ;; # 10.10 "Maverick"
 	2.6.38) ubuntu_kernel 2.6.38 linux-image-2.6.38-9-generic_2.6.38-9.43_amd64.deb linux ;; # 11.04 "Natty"
+	2.6.18) # Debian 4.0 "Etch" amd64
+		debian_kernel 2.6.18 linux-image-2.6.18-6-amd64_2.6.18.dfsg.1-26etch2_amd64.deb ;;
+	2.6.26) # Debian 5.0 "Lenny" amd64
+		debian_kernel 2.6.26 linux-image-2.6.26-2-amd64_2.6.26-29_amd64.deb ;;
+	2.6.31) ubuntu_kernel 2.6.31 linux-image-2.6.31-23-generic_2.6.31-23.75_amd64.deb linux ;; # 9.10 "Karmic"
+	2.6.23) fedora_kernel 2.6.23 kernel-2.6.23.1-42.fc8.x86_64.rpm releases/8/Everything/x86_64/os/Packages ;; # Fedora 8
+	2.6.29) fedora_kernel 2.6.29 kernel-2.6.29.4-167.fc11.x86_64.rpm releases/11/Everything/x86_64/os/Packages ;; # Fedora 11
+	2.6.30) fedora_kernel 2.6.30 kernel-2.6.30.10-105.2.23.fc11.x86_64.rpm updates/11/x86_64 ;; # Fedora 11 updates
+	2.6.33) fedora_kernel 2.6.33 kernel-2.6.33.3-85.fc13.x86_64.rpm releases/13/Everything/x86_64/os/Packages ;; # Fedora 13
+	2.6.34) fedora_kernel 2.6.34 kernel-2.6.34.9-69.fc13.x86_64.rpm updates/13/x86_64 ;; # Fedora 13 updates
+	2.6.9) fedora_kernel 2.6.9 kernel-2.6.9-1.667.x86_64.rpm core/3/x86_64/os/Fedora/RPMS # Fedora Core 3
+		echo hdc=noprobe >"$cache/kernels/2.6.9/cmdline" ;;
+	2.6.11) fedora_kernel 2.6.11 kernel-2.6.11-1.1369_FC4.x86_64.rpm core/4/x86_64/os/Fedora/RPMS ;; # Fedora Core 4
+	2.6.21) fedora_kernel 2.6.21 kernel-2.6.21-1.3194.fc7.x86_64.rpm releases/7/Everything/x86_64/os/Fedora ;; # Fedora 7
+	2.6.25) fedora_kernel 2.6.25 kernel-2.6.25-14.fc9.x86_64.rpm releases/9/Everything/x86_64/os/Packages ;; # Fedora 9
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }

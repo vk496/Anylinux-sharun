@@ -88,7 +88,10 @@ done
 trap 'rm -rf "$root" "$root/../initramfs.$$.gz"' EXIT
 
 accel=tcg; [ -w /dev/kvm ] && accel=kvm
-append="console=ttyS0 panic=-1 quiet oldkernel.shell=$shell"
+accel=${OLDKERNEL_ACCEL:-$accel}   # tcg or kvm: 2.6.9 does not boot under kvm
+append="console=ttyS0 panic=-1 quiet oldkernel.shell=$shell ${OLDKERNEL_APPEND:-}"
+# extra boot parameters a kernel needs (2.6.9 spends minutes probing the CD-ROM without hdc=noprobe)
+[ -f "$here/cache/kernels/$kernel/cmdline" ] && append="$append $(cat "$here/cache/kernels/$kernel/cmdline")"
 # pc-i440fx-6.2, not "pc": newer machine types add an e820 range that 2.6.15 cannot handle
 qargs=(-machine "pc-i440fx-6.2,accel=$accel" -cpu "$cpu" -m "$mem" -nographic -no-reboot
 	-kernel "$vmlinuz" -initrd "$root/../initramfs.$$.gz" -append "$append"
