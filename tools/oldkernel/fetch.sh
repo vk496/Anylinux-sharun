@@ -47,7 +47,8 @@ debian_kernel() { # version deb
 fedora_kernel() { # version rpm path-under-archive
 	out=$cache/kernels/$1; mkdir -p "$out"
 	[ -s "$out/vmlinuz" ] && return
-	dl "https://archives.fedoraproject.org/pub/archive/fedora/linux/$3/$2" "$cache/$2"
+	case $3 in http*) url=$3/$2 ;; *) url=https://archives.fedoraproject.org/pub/archive/fedora/linux/$3/$2 ;; esac
+	dl "$url" "$cache/$2"
 	t=$(mktemp -d); (cd "$t" && 7z x -y "$cache/$2" >/dev/null && cpio -idm --quiet < ./*.cpio)
 	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
 }
@@ -137,6 +138,11 @@ fetch_kernel() {
 	2.6.11) fedora_kernel 2.6.11 kernel-2.6.11-1.1369_FC4.x86_64.rpm core/4/x86_64/os/Fedora/RPMS ;; # Fedora Core 4
 	2.6.21) fedora_kernel 2.6.21 kernel-2.6.21-1.3194.fc7.x86_64.rpm releases/7/Everything/x86_64/os/Fedora ;; # Fedora 7
 	2.6.25) fedora_kernel 2.6.25 kernel-2.6.25-14.fc9.x86_64.rpm releases/9/Everything/x86_64/os/Packages ;; # Fedora 9
+	2.6.5) fedora_kernel 2.6.5 kernel-2.6.5-1.358.x86_64.rpm core/2/x86_64/os/Fedora/RPMS # Fedora Core 2
+		echo hdc=noprobe >"$cache/kernels/2.6.5/cmdline" ;;
+	2.6.36) fedora_kernel 2.6.36 kernel-2.6.36-5.fc15.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.36/5.fc15/x86_64 ;; # Fedora 15 (Koji)
+	2.6.37) fedora_kernel 2.6.37 kernel-2.6.37-2.fc15.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.37/2.fc15/x86_64 ;; # Fedora 15 (Koji)
+	2.6.39) fedora_kernel 2.6.39 kernel-2.6.39-1.fc16.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.39/1.fc16/x86_64 ;; # Fedora 16 (Koji)
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }
