@@ -43,7 +43,7 @@ debian_kernel() { # version deb
 	cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t"
 }
 
-# A Fedora x86_64 kernel RPM (unpacked with 7z + cpio, no rpm tools needed).
+# A Fedora (or SUSE) x86_64 kernel RPM (unpacked with 7z + cpio, no rpm tools needed).
 fedora_kernel() { # version rpm path-under-archive
 	out=$cache/kernels/$1; mkdir -p "$out"
 	[ -s "$out/vmlinuz" ] && return
@@ -143,6 +143,8 @@ fetch_kernel() {
 	2.6.36) fedora_kernel 2.6.36 kernel-2.6.36-5.fc15.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.36/5.fc15/x86_64 ;; # Fedora 15 (Koji)
 	2.6.37) fedora_kernel 2.6.37 kernel-2.6.37-2.fc15.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.37/2.fc15/x86_64 ;; # Fedora 15 (Koji)
 	2.6.39) fedora_kernel 2.6.39 kernel-2.6.39-1.fc16.x86_64.rpm https://kojipkgs.fedoraproject.org/packages/kernel/2.6.39/1.fc16/x86_64 ;; # Fedora 16 (Koji)
+	2.6.4) fedora_kernel 2.6.4 kernel-default-2.6.4-52.x86_64.rpm https://ftp.gwdg.de/pub/linux/suse/discontinued/x86_64/9.1/suse/x86_64 # SUSE Linux 9.1
+		echo hdc=noprobe >"$cache/kernels/2.6.4/cmdline" ;;
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }
