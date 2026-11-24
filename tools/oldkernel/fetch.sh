@@ -66,6 +66,15 @@ fetch_kernel() {
 		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"
 		# UNIX sockets are a module on this kernel, not built in: run.sh loads it
 		cp "$t"/lib/modules/*/kernel/net/unix/unix.ko "$out/unix.ko"; rm -rf "$t" ;;
+	2.6.8) # Debian 3.1 "Sarge" amd64 (the unofficial port): the oldest x86_64 kernel packaged
+		deb=kernel-image-2.6.8-12-amd64-generic_2.6.8-16sarge6_amd64.deb
+		out=$cache/kernels/2.6.8; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://archive.debian.org/debian-amd64/pool/main/k/kernel-image-2.6.8-amd64/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"
+		# UNIX sockets are a module on this kernel, not built in: run.sh loads it
+		cp "$t"/lib/modules/*/kernel/net/unix/unix.ko "$out/unix.ko"; rm -rf "$t" ;;
 	2.6.10) # Ubuntu 5.04 "Hoary" amd64: the kernel mhx/dwarfs#385 was reported on
 		deb=linux-image-2.6.10-5-amd64-generic_2.6.10-34.7_amd64.deb
 		out=$cache/kernels/2.6.10; mkdir -p "$out"
