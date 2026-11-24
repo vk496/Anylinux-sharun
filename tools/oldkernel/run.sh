@@ -31,6 +31,10 @@ mkdir -p "$root"/{bin,sbin,proc,sys,dev,tmp,opt,etc,root,usr/bin}
 cp "$here/cache/busybox" "$root/bin/busybox"
 for a in $("$root/bin/busybox" --list); do ln -sf busybox "$root/bin/$a"; done
 [ -d "$here/cache/overlay" ] && cp -a "$here/cache/overlay/." "$root/"
+# some old kernels (2.6.10, 2.6.12) have UNIX sockets as a module, not built in
+if [ -f "$here/cache/kernels/$kernel/unix.ko" ]; then
+	mkdir -p "$root/opt/.modules"; cp "$here/cache/kernels/$kernel/unix.ko" "$root/opt/.modules/"
+fi
 printf 'root:x:0:0:root:/root:/bin/sh\n' >"$root/etc/passwd"
 for f in "${files[@]}"; do
 	src=${f%%:*}; dst=opt/$(basename "$src"); [ "$f" != "$src" ] && dst=opt/${f#*:}
@@ -60,6 +64,7 @@ cat >"$root/init" <<'INIT'
 [ -c /dev/urandom ] || /bin/busybox mknod -m666 /dev/urandom c 1 9 2>/dev/null
 [ -c /dev/zero ] || /bin/busybox mknod -m666 /dev/zero c 1 5 2>/dev/null
 /bin/busybox mkdir -p /dev/pts && /bin/busybox mount -t devpts devpts /dev/pts 2>/dev/null
+[ -f /opt/.modules/unix.ko ] && /bin/busybox insmod /opt/.modules/unix.ko
 export PATH=/bin:/sbin:/usr/bin HOME=/root
 echo "== guest kernel: $(uname -sr) $(uname -m)"
 cd /opt
@@ -74,6 +79,11 @@ echo "== guest exit: $rc"
 echo o >/proc/sysrq-trigger 2>/dev/null; reboot -f
 INIT
 chmod +x "$root/init"
+# the initramfs unpacker of some old kernels (2.6.24) creates every hardlink but one empty,
+# so give each link its own copy (sharun has to be hardlinked or copied as AppRun and bin/*)
+find "$root" -type f -links +1 -print0 | while IFS= read -r -d '' f; do
+	cp -p "$f" "$f.unlink" && mv -f "$f.unlink" "$f"
+done
 (cd "$root" && find . | cpio -o -H newc --quiet | gzip -1) >"$root/../initramfs.$$.gz"
 trap 'rm -rf "$root" "$root/../initramfs.$$.gz"' EXIT
 

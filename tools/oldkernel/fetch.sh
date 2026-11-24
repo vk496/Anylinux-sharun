@@ -48,6 +48,38 @@ fetch_kernel() {
 		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux-source-2.6.15/$deb" "$cache/$deb"
 		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
 		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
+	2.6.12) # Ubuntu 5.10 "Breezy" amd64
+		deb=linux-image-2.6.12-10-amd64-generic_2.6.12-10.45_amd64.deb
+		out=$cache/kernels/2.6.12; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux-source-2.6.12/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"
+		# UNIX sockets are a module on this kernel, not built in: run.sh loads it
+		cp "$t"/lib/modules/*/kernel/net/unix/unix.ko "$out/unix.ko"; rm -rf "$t" ;;
+	2.6.10) # Ubuntu 5.04 "Hoary" amd64: the kernel mhx/dwarfs#385 was reported on
+		deb=linux-image-2.6.10-5-amd64-generic_2.6.10-34.7_amd64.deb
+		out=$cache/kernels/2.6.10; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux-source-2.6.10/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"
+		# UNIX sockets are a module on this kernel, not built in: run.sh loads it
+		cp "$t"/lib/modules/*/kernel/net/unix/unix.ko "$out/unix.ko"; rm -rf "$t" ;;
+	2.6.24) # Ubuntu 8.04 "Hardy" amd64
+		deb=linux-image-2.6.24-32-generic_2.6.24-32.107_amd64.deb
+		out=$cache/kernels/2.6.24; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
+	2.6.32) # Ubuntu 10.04 "Lucid" amd64
+		deb=linux-image-2.6.32-74-generic_2.6.32-74.142_amd64.deb
+		out=$cache/kernels/2.6.32; mkdir -p "$out"
+		[ -s "$out/vmlinuz" ] && return
+		dl "http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux/$deb" "$cache/$deb"
+		t=$(mktemp -d); unpack_deb "$cache/$deb" "$t"
+		cp "$t"/boot/vmlinuz-* "$out/vmlinuz"; rm -rf "$t" ;;
 	*) echo "unknown kernel '$1' (add it to fetch_kernel)" >&2; exit 1 ;;
 	esac
 }
