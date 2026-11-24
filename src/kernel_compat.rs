@@ -957,6 +957,10 @@ impl Tracer {
 							self.resume(pid, None);
 						}
 					} else {
+						if self.is_repeated_exit(pid) {
+							self.resume(pid, None);
+							continue;
+						}
 						if self.emulated.busy(pid) {
 							// Inside an emulation every stop belongs to it: the
 							// tracee is running our calls, not the application's.
@@ -1053,6 +1057,21 @@ impl Tracer {
 			return true;
 		}
 		false
+	}
+
+	/// Linux 2.6.12 reports the exit of every syscall twice, which moves the
+	/// entry/exit pairing by one stop for good (and an emulation then takes the
+	/// repeat for the entry of its next call). The kernel always sets rax to
+	/// -ENOSYS before it reports an entry, so a stop that should be an entry but
+	/// has another rax is such a repeat.
+	fn is_repeated_exit(&self, pid: Pid) -> bool {
+		let entry_expected = if self.emulated.busy(pid) {
+			self.emulated.expects_entry(pid)
+		} else {
+			!*self.in_syscall.get(&pid).unwrap_or(&false)
+		};
+		entry_expected
+			&& matches!(ptrace::getregs(pid), Ok(regs) if regs.rax as u32 != -libc::ENOSYS as u32)
 	}
 
 	fn on_syscall_stop(&mut self, pid: Pid) {
