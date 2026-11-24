@@ -69,7 +69,7 @@ dependencies = [
 [[package]]
 name = "old-linux-kernel-compat-layer"
 version = "0.1.1"
-source = "git+https://github.com/pkgforge-dev/old-linux-kernel-compat-layer?rev=c8593d17684b6a1bb982e1c58c4cb703993881b4#c8593d17684b6a1bb982e1c58c4cb703993881b4"
+source = "git+https://github.com/vk496/old-linux-kernel-compat-layer?rev=536f2c2491854201cffe08fd3f8345614249ab0b#536f2c2491854201cffe08fd3f8345614249ab0b"
 dependencies = [
  "nix 0.31.4",
 ]
