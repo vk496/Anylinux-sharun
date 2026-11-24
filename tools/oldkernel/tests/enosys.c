@@ -25,5 +25,14 @@ int main(void){
 		check(r == 0, "futimesat of the file works");
 		check(unlink(file) == 0, "unlink");
 	}
+	/* the same wrapper called again and again after calls that worked: none of those entries may be
+	   taken for the repeat of an exit */
+	int z = open("/dev/zero", O_RDONLY); char buf[16]; int reads = 1;
+	for (int i = 0; i < 300 && reads; i++) {
+		long n = read(z, buf, sizeof buf);
+		if (n != (long)sizeof buf) { printf("read %d returned %ld errno=%d\n", i, n, errno); reads = 0; }
+	}
+	check(reads, "300 consecutive reads of the same call");
+	close(z);
 	return bad;
 }
