@@ -2,14 +2,15 @@
 
 Boots a real legacy kernel in QEMU so the old-kernel compatibility layer
 (`src/kernel_compat.rs`, `src/emulated_syscalls.rs`) can be tested on the kernels
-it targets. Nothing is built from kernel sources: prebuilt kernels are downloaded
-and the guest is just busybox in an initramfs (boots in a few seconds, no disk,
-no network).
+it targets. The guest is just busybox in an initramfs (boots in a few seconds, no
+disk, no network).
 
-| id | kernel | from |
-|---|---|---|
-| `2.6.17` | Ubuntu 6.10 `2.6.17-10.33` amd64 | old-releases.ubuntu.com |
-| `2.6.16` | Debian `2.6.16-18` amd64 | snapshot.debian.org |
+Kernels 2.6.4 to 2.6.39 (all but the nine below) are prebuilt distribution kernels
+(Debian, Ubuntu, Fedora, openSUSE) that `fetch.sh` downloads; each one has its source
+in a comment there. For 2.6.0 to 2.6.3, 2.6.6, 2.6.7, 2.6.13, 2.6.14 and 2.6.19 no usable
+x86_64 build was found, so `build-kernel.sh N...` builds a minimal vanilla kernel from
+the kernel.org sources with the gcc and binutils of its time, taken from the Debian
+archive and run in place (see the header of the script for the few source fixes needed).
 
 Needs `qemu-system-x86_64`, `cpio`, `musl-gcc`, `docker`, `gh` and `curl`. `fetch.sh`
 downloads the rest (kernels, busybox, zig 0.16.0 to build like CI does, and a guest
