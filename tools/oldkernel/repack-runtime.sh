@@ -2,6 +2,7 @@
 # Rebuild the AppImages in cache/appimages with another runtime, to try a runtime
 # change without rebuilding the applications.
 #   repack-runtime.sh <uruntime-binary> [outdir]   (default outdir: cache/appimages-newrt)
+# IN=<dir> repacks the AppImages of that directory instead of cache/appimages.
 # SHARUN=<sharun-binary> also replaces every copy of the sharun inside the AppDirs (AppRun,
 # bin/*), to try a sharun release without rebuilding the applications.
 # Needs the AppImages to be extractable on the host (--appimage-extract) and
@@ -12,10 +13,10 @@ rt=$(realpath "$1"); out=${2:-$c/appimages-newrt}
 tool=$c/appimagetool
 [ -x "$tool" ] || { curl -fsSL -o "$tool" https://github.com/pkgforge-dev/appimagetool/releases/download/0.7.1/appimagetool-full-x86_64-linux; chmod +x "$tool"; }
 mkdir -p "$out"
-for img in "$c"/appimages/*.AppImage; do
+for img in "${IN:-$c/appimages}"/*.AppImage; do
 	n=$(basename "$img"); w=$(mktemp -d)
 	( cd "$w" && cp "$img" in.AppImage && ./in.AppImage --appimage-extract >/dev/null 2>&1 && mkdir o &&
-	  if [ -n "${SHARUN:-}" ]; then
+	  if [ -n "${SHARUN:-}" ] && [ -f AppDir/sharun ]; then
 		old=$(sha256sum AppDir/sharun | cut -d' ' -f1)
 		find AppDir -type f -size "$(stat -c%s AppDir/sharun)c" | while read -r f; do
 			[ "$(sha256sum "$f" | cut -d' ' -f1)" = "$old" ] && cat "$SHARUN" >"$f"
